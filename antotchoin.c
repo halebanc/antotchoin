@@ -3,6 +3,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #define TAILLE 20
 
@@ -69,17 +70,21 @@ int option(char* mot){
 }
 
 void afficher_ligne(char** tab, int nb_col,int nb_ligne, int affichage){
-	int a, b; //x, y du pointeur
 	for(int x=0; x<nb_col; x++){
+		char temp=tab[x][nb_ligne];
 		move(affichage, x);
-		getyx(stdscr, b, a);
-		if(tab[x][nb_ligne]=='e' && personnage==2 && tab[x][nb_ligne-1]=='l'){
-			if(rand()%3==0) mvaddch(b, a, 'E' | COLOR_PAIR(2));
-			else mvaddch(b, a, 'e' | COLOR_PAIR(2)); 
+		if(temp>96 && rand()%20==0){
+			addch((temp-32));
+		}
+		else if(tab[x][nb_ligne]=='e' && personnage==2 && tab[x][nb_ligne-1]=='l'){
+			if(rand()%7==0) addch('E' | COLOR_PAIR(2));
+			//else if(rand()%5==0) addch('&' | COLOR_PAIR(2));
+			else addch('e' | COLOR_PAIR(2)); 
 		}
 		else if(tab[x][nb_ligne]=='a'){
-			if(rand()%3==0) mvaddch(b, a, 'A' | COLOR_PAIR(2));
-			else mvaddch(b, a, 'a' | COLOR_PAIR(2));
+			if(rand()%7==0) addch('A' | COLOR_PAIR(2));
+			//else if(rand()%5==0) addch('@' | COLOR_PAIR(2));
+			else addch('a' | COLOR_PAIR(2));
 		}
 		else addch(tab[x][nb_ligne]);
 	}
@@ -97,6 +102,11 @@ int main(int argc, char** argv){
 		printf("Votre Terminal ne support pas les couleurs\n");
 		exit(1);
 	}
+	signal(SIGINT, SIG_IGN);
+	noecho();
+	nodelay(stdscr, TRUE);
+	scrollok(stdscr, FALSE);
+
 	start_color();
 	init_pair(1, couleur, 0);
 	init_pair(2, 7, 0);
@@ -142,16 +152,17 @@ int main(int argc, char** argv){
 	}
 	
 	//boucle affichage
+	int temps=1000000/vitesse;
 	int i=0;
 	while(i<=(ligne*TAILLE)){
+		if((a=getch()) =='q') break;
 		if (i>=ligne*TAILLE) i=ligne;
 		for(int s=0; s<=i; s++){
-			//if(wgetch(stdscr)=='q') break;
 		       	afficher_ligne(tableau, col, s, i-s);//afficher la ligne s du tableau à la place i-s sur le tableau	
 		}
 		refresh();
 		i++;
-		usleep(1000000/vitesse);//en microsecondes	
+		usleep(temps);//en microsecondes	
 	}
 
 
